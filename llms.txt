@@ -1,0 +1,39 @@
+# Grigorii Pershin — Senior DevOps / Platform Engineer
+
+Canonical website: https://vigregus.github.io/
+GitHub: https://github.com/vigregus
+LinkedIn: https://www.linkedin.com/in/grigoriypershin/
+Email: vigregus@gmail.com
+Telegram: https://t.me/vigregus
+Location: Córdoba, Spain
+Availability: Remote projects and contracts, up to 40 hours per week
+Commercial terms: Discussed individually
+
+## Primary value
+
+Grigorii helps startups reach their first production MVP as quickly as possible while minimizing infrastructure cost. He designs and implements lean AWS architectures using Lambda, Fargate, or EC2, then gradually evolves platforms toward Kubernetes when traffic, team size, and operational requirements justify it.
+
+## Enterprise experience
+
+Production Kubernetes, cloud infrastructure, Terraform, CI/CD, GitOps, observability, reliability, and cost optimization experience across complex international projects associated with Bose, Schneider Electric, and Pearson, as well as production platform work at UMSCHOOL and enterprise delivery experience at EPAM.
+
+## Services
+
+- Fast and cost-efficient AWS production MVP launch
+- AWS Lambda, Fargate, and EC2 architecture and implementation
+- Gradual migration to Kubernetes
+- Kubernetes and cloud infrastructure audit
+- Terraform and Terragrunt implementation or review
+- CI/CD and GitOps setup
+- Observability and production reliability
+- Cloud cost and capacity optimization
+- Incident investigation and platform consulting
+
+## Public evidence
+
+- https://github.com/vigregus/webserver-app
+- https://github.com/vigregus/webserver-app-infra
+
+## Contact preference
+
+Use email at vigregus@gmail.com or Telegram at @vigregus. WhatsApp is available on request.
