@@ -5,6 +5,7 @@ GitHub: https://github.com/vigregus
 LinkedIn: https://www.linkedin.com/in/grigoriypershin/
 Email: vigregus@gmail.com
 Telegram: https://t.me/vigregus
+WhatsApp: https://wa.me/34610153572
 Location: Córdoba, Spain
 Availability: Remote projects and contracts, up to 40 hours per week
 Commercial terms: Discussed individually
@@ -36,4 +37,4 @@ Production Kubernetes, cloud infrastructure, Terraform, CI/CD, GitOps, observabi
 
 ## Contact preference
 
-Use email at vigregus@gmail.com or Telegram at @vigregus. WhatsApp is available on request.
+Use email at vigregus@gmail.com, Telegram at @vigregus, or WhatsApp at +34 610 153 572.
