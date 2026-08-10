@@ -33,8 +33,25 @@
     "availableLanguage": ["English", "Russian"]
   }
   </script>
+  <!-- Google tag (gtag.js) with Consent Mode -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('consent', 'default', {
+      ad_storage: 'denied',
+      analytics_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied'
+    });
+    if (localStorage.getItem('analytics_consent') === 'granted') {
+      gtag('consent', 'update', {analytics_storage: 'granted'});
+    }
+    gtag('js', new Date());
+    gtag('config', 'G-XRSKZ8BVP9', {anonymize_ip: true});
+  </script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XRSKZ8BVP9"></script>
   <style>
-    :root{--bg:#08111f;--panel:#101d30;--text:#edf4ff;--muted:#9eb0c8;--line:#253650;--cyan:#4de2c5;--blue:#65a9ff;--max:1120px}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 75% 0,#163358 0,transparent 33%),var(--bg);color:var(--text);font:16px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:inherit;text-decoration:none}.wrap{max-width:var(--max);margin:auto;padding:0 24px}nav{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.brand{font-weight:800;letter-spacing:.02em}.navlinks{display:flex;gap:26px;color:var(--muted);font-size:14px}.hero{padding:92px 0 78px;display:grid;grid-template-columns:1.4fr .6fr;gap:44px;align-items:center}.eyebrow{color:var(--cyan);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:13px}.hero h1{font-size:clamp(42px,7vw,78px);line-height:1.02;margin:18px 0}.gradient{background:linear-gradient(90deg,var(--cyan),var(--blue));-webkit-background-clip:text;color:transparent}.lead{max-width:760px;color:var(--muted);font-size:20px}.buttons{display:flex;gap:14px;flex-wrap:wrap;margin-top:30px}.btn{padding:12px 18px;border-radius:9px;border:1px solid var(--line);font-weight:700}.btn.primary{background:var(--cyan);border-color:var(--cyan);color:#06111c}.status{padding:26px;border:1px solid var(--line);background:rgba(16,29,48,.82);border-radius:16px}.status b{display:block;font-size:19px}.status p{color:var(--muted);margin:7px 0}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 16px var(--cyan);margin-right:8px}section{padding:72px 0;border-top:1px solid var(--line)}h2{font-size:34px;margin:0 0 12px}.section-intro{color:var(--muted);max-width:720px;margin:0 0 34px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{padding:25px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(145deg,rgba(16,29,48,.92),rgba(10,20,35,.92))}.card h3{margin:4px 0 10px}.card p,.card li{color:var(--muted)}.card ul{padding-left:18px}.metric{font-size:34px;font-weight:800;color:var(--cyan)}.tags{display:flex;flex-wrap:wrap;gap:9px}.tag{padding:7px 11px;border:1px solid var(--line);border-radius:999px;color:#bfd0e4;background:#0d192a}.project{grid-column:span 1}.project a{color:var(--cyan);font-weight:700}.contact{text-align:center;padding-bottom:90px}.contact .buttons{justify-content:center}footer{padding:28px 0;color:var(--muted);border-top:1px solid var(--line);font-size:14px}@media(max-width:820px){.hero{grid-template-columns:1fr;padding-top:65px}.grid{grid-template-columns:1fr}.navlinks{display:none}}
+    :root{--bg:#08111f;--panel:#101d30;--text:#edf4ff;--muted:#9eb0c8;--line:#253650;--cyan:#4de2c5;--blue:#65a9ff;--max:1120px}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 75% 0,#163358 0,transparent 33%),var(--bg);color:var(--text);font:16px/1.65 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:inherit;text-decoration:none}.wrap{max-width:var(--max);margin:auto;padding:0 24px}nav{height:76px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.brand{font-weight:800;letter-spacing:.02em}.navlinks{display:flex;gap:26px;color:var(--muted);font-size:14px}.hero{padding:92px 0 78px;display:grid;grid-template-columns:1.4fr .6fr;gap:44px;align-items:center}.eyebrow{color:var(--cyan);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:13px}.hero h1{font-size:clamp(42px,7vw,78px);line-height:1.02;margin:18px 0}.gradient{background:linear-gradient(90deg,var(--cyan),var(--blue));-webkit-background-clip:text;color:transparent}.lead{max-width:760px;color:var(--muted);font-size:20px}.buttons{display:flex;gap:14px;flex-wrap:wrap;margin-top:30px}.btn{padding:12px 18px;border-radius:9px;border:1px solid var(--line);font-weight:700}.btn.primary{background:var(--cyan);border-color:var(--cyan);color:#06111c}.status{padding:26px;border:1px solid var(--line);background:rgba(16,29,48,.82);border-radius:16px}.status b{display:block;font-size:19px}.status p{color:var(--muted);margin:7px 0}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--cyan);box-shadow:0 0 16px var(--cyan);margin-right:8px}section{padding:72px 0;border-top:1px solid var(--line)}h2{font-size:34px;margin:0 0 12px}.section-intro{color:var(--muted);max-width:720px;margin:0 0 34px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{padding:25px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(145deg,rgba(16,29,48,.92),rgba(10,20,35,.92))}.card h3{margin:4px 0 10px}.card p,.card li{color:var(--muted)}.card ul{padding-left:18px}.metric{font-size:34px;font-weight:800;color:var(--cyan)}.tags{display:flex;flex-wrap:wrap;gap:9px}.tag{padding:7px 11px;border:1px solid var(--line);border-radius:999px;color:#bfd0e4;background:#0d192a}.project{grid-column:span 1}.project a{color:var(--cyan);font-weight:700}.contact{text-align:center;padding-bottom:90px}.contact .buttons{justify-content:center}footer{padding:28px 0;color:var(--muted);border-top:1px solid var(--line);font-size:14px}.consent{position:fixed;left:18px;right:18px;bottom:18px;z-index:20;max-width:760px;margin:auto;padding:18px;border:1px solid var(--line);border-radius:12px;background:#101d30;box-shadow:0 14px 50px #0008;display:none;align-items:center;gap:18px}.consent p{margin:0;color:var(--muted);font-size:14px}.consent-actions{display:flex;gap:8px;flex-shrink:0}.consent button{cursor:pointer;color:var(--text);background:transparent;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-weight:700}.consent .accept{background:var(--cyan);border-color:var(--cyan);color:#06111c}@media(max-width:820px){.hero{grid-template-columns:1fr;padding-top:65px}.grid{grid-template-columns:1fr}.navlinks{display:none}.consent{align-items:stretch;flex-direction:column}.consent-actions{width:100%}.consent button{flex:1}}
   </style>
 </head>
 <body>
@@ -67,5 +84,34 @@
     </main>
     <footer>© 2026 Grigorii Pershin · Senior DevOps / Platform Engineer</footer>
   </div>
+  <aside class="consent" id="analytics-consent" aria-label="Analytics consent">
+    <p>This site uses privacy-conscious Google Analytics to understand traffic sources and improve the portfolio. No advertising cookies are enabled.</p>
+    <div class="consent-actions"><button id="analytics-reject">Decline</button><button class="accept" id="analytics-accept">Accept analytics</button></div>
+  </aside>
+  <script>
+    (function () {
+      var choice = localStorage.getItem('analytics_consent');
+      var banner = document.getElementById('analytics-consent');
+      if (!choice) banner.style.display = 'flex';
+      document.getElementById('analytics-accept').addEventListener('click', function () {
+        localStorage.setItem('analytics_consent', 'granted');
+        gtag('consent', 'update', {analytics_storage: 'granted'});
+        gtag('event', 'analytics_consent_granted');
+        banner.style.display = 'none';
+      });
+      document.getElementById('analytics-reject').addEventListener('click', function () {
+        localStorage.setItem('analytics_consent', 'denied');
+        gtag('consent', 'update', {analytics_storage: 'denied'});
+        banner.style.display = 'none';
+      });
+      document.addEventListener('click', function (event) {
+        var link = event.target.closest('a');
+        if (!link || localStorage.getItem('analytics_consent') !== 'granted') return;
+        var href = link.getAttribute('href') || '';
+        var channel = href.indexOf('mailto:') === 0 ? 'email' : href.indexOf('wa.me') > -1 ? 'whatsapp' : href.indexOf('t.me') > -1 ? 'telegram' : href.indexOf('linkedin.com') > -1 ? 'linkedin' : href.indexOf('github.com') > -1 ? 'github' : href.indexOf('#contact') === 0 ? 'contact_cta' : '';
+        if (channel) gtag('event', 'contact_click', {contact_channel: channel, link_url: href});
+      });
+    }());
+  </script>
 </body>
 </html>
