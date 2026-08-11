@@ -34,6 +34,7 @@ Production Kubernetes, cloud infrastructure, Terraform, CI/CD, GitOps, observabi
 
 - https://github.com/vigregus/webserver-app
 - https://github.com/vigregus/webserver-app-infra
+- https://vigregus.github.io/aws-mvp-without-overengineering.html — practical guide to choosing Lambda, Fargate, or EC2 for an MVP and moving gradually toward Kubernetes
 
 ## Contact preference
 
