@@ -10,4 +10,14 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>https://vigregus.github.io/when-does-a-startup-need-kubernetes.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://vigregus.github.io/aws-cost-benchmark-lambda-fargate-ec2-eks.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>

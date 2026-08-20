@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>When Does a Startup Actually Need Kubernetes? — Grigorii Pershin</title>
+  <meta name="description" content="A practical guide to recognizing when startup infrastructure complexity genuinely justifies Kubernetes, and how to migrate without a risky big-bang rewrite.">
+  <meta name="author" content="Grigorii Pershin">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
+  <link rel="canonical" href="https://vigregus.github.io/when-does-a-startup-need-kubernetes.html">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://vigregus.github.io/when-does-a-startup-need-kubernetes.html">
+  <meta property="og:title" content="When Does a Startup Actually Need Kubernetes?">
+  <meta property="og:description" content="The operational and organizational signals that tell you Kubernetes is solving more complexity than it creates.">
+  <style>
+    :root{--bg:#071317;--panel:#0c1c21;--text:#f2f0e9;--muted:#a8b8b7;--line:rgba(231,242,238,.14);--cyan:#b9ed62;--max:960px}*{box-sizing:border-box}body{margin:0;background:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),var(--bg);background-size:56px 56px;color:var(--text);font:17px/1.8 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:inherit;text-decoration:none}nav{height:76px;padding:0 5vw;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);background:rgba(7,19,23,.92);position:sticky;top:0;z-index:5;backdrop-filter:blur(14px)}.brand{font-weight:800}.back{color:var(--cyan);font-size:14px}.hero{max-width:1180px;margin:auto;padding:100px 28px 80px}.eyebrow{color:var(--cyan);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.hero h1{font-size:clamp(48px,7vw,90px);line-height:.98;letter-spacing:-.055em;margin:24px 0}.deck{max-width:840px;color:var(--muted);font-size:22px}.meta{display:flex;gap:16px 28px;flex-wrap:wrap;margin-top:35px;color:#718388;font-size:11px;text-transform:uppercase;letter-spacing:.08em}.content{max-width:var(--max);margin:auto;padding:70px 28px 110px}.lead{font-size:23px;color:var(--text)}h2{font-size:clamp(32px,4vw,50px);line-height:1.08;letter-spacing:-.035em;margin:75px 0 20px}h3{font-size:25px;margin:45px 0 10px}p,li{color:var(--muted)}li{margin:10px 0}.callout{margin:42px 0;padding:26px;border-left:3px solid var(--cyan);background:var(--panel)}.callout strong{color:var(--cyan);font-size:12px;text-transform:uppercase;letter-spacing:.08em}.matrix{margin:32px 0;border-top:1px solid var(--line);border-left:1px solid var(--line)}.row{display:grid;grid-template-columns:.55fr 1.25fr 1fr 1fr}.row>*{padding:16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);font-size:13px;line-height:1.55}.head>*{color:var(--cyan);font-size:10px;text-transform:uppercase;letter-spacing:.06em}.flow{display:flex;align-items:center;gap:8px;margin:30px 0}.flow span{flex:1;display:grid;place-items:center;min-height:86px;padding:12px;border:1px solid var(--line);background:var(--panel);font-size:12px;text-align:center}.flow b{color:var(--cyan)}pre{overflow:auto;padding:22px;border:1px solid var(--line);background:#081115;color:#d8e5df;font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace}.cta{margin-top:80px;padding:34px;border:1px solid var(--line);background:var(--panel)}.cta p{font-size:21px;color:var(--text)}.btn{display:inline-block;padding:12px 17px;background:var(--cyan);color:var(--bg);font-weight:800}@media(max-width:700px){.row{grid-template-columns:1fr}.head{display:none}.flow{flex-direction:column}.flow b{transform:rotate(90deg)}.hero{padding-top:70px}}
+  </style>
+</head>
+<body>
+  <nav><a class="brand" href="index.html">GP / DEVOPS</a><a class="back" href="index.html#insights">← Insights</a></nav>
+  <header class="hero">
+    <div class="eyebrow">Kubernetes · Platform engineering</div>
+    <h1>When Does a Startup Actually Need Kubernetes?</h1>
+    <p class="deck">Kubernetes is excellent at solving infrastructure complexity. The real question is when that complexity actually exists.</p>
+    <div class="meta"><span>Grigorii Pershin</span><span>Senior DevOps &amp; Platform Engineer</span><span>11 min read</span></div>
+  </header>
+  <main class="content">
+    <p class="lead">Kubernetes is often introduced too early. A startup launches an MVP, gets the first customers, adds a few services, and suddenly someone says: we should move to Kubernetes before we scale. Sometimes that is correct. Very often, it is not.</p>
+    <p>Kubernetes solves real problems: scheduling, standardization, autoscaling, policy, multi-team platform boundaries. But if those problems do not exist yet, Kubernetes does not remove complexity. It creates it.</p>
+
+    <aside class="callout"><strong>Core question</strong><p>Kubernetes becomes justified when it solves more operational and organizational complexity than it introduces.</p></aside>
+
+    <h2>The MVP stage: keep infrastructure boring</h2>
+    <p>Imagine a startup building a SaaS product with three application services, predictable traffic, and one DevOps engineer supporting a small product team.</p>
+    <pre>Users
+  |
+CloudFront
+  |
+Application Load Balancer
+  |
+-----------------------------
+|            |              |
+API       Worker        Admin API
+|            |              |
+Fargate    Fargate        Fargate
+|
+RDS PostgreSQL
+|
+S3</pre>
+    <p>At this stage, ECS with Fargate can be extremely effective. You do not manage worker nodes, cluster upgrades, ingress controllers, autoscaling add-ons, policy engines, or GitOps controllers. You can already run a serious production system with a compact Terraform surface and a clear operational model.</p>
+    <pre>VPC
+ALB
+ECS Cluster
+ECS Services
+RDS
+Redis
+S3
+CloudWatch
+IAM</pre>
+    <p>Infrastructure is not the product. Early on, boring infrastructure is usually an advantage.</p>
+
+    <h2>What changes after the MVP?</h2>
+    <p>The architecture becomes more interesting as the company grows. The three-service application gradually becomes a set of independently deployed workloads with different scaling patterns and resource profiles.</p>
+    <pre>Frontend
+API Gateway
+Auth Service
+Billing Service
+Notification Service
+Reporting Service
+Search Service
+Background Workers
+Image Processor
+Webhook Processor
+Scheduled Jobs
+Internal Admin Service
+Analytics Pipeline</pre>
+    <p>The problem is no longer simply how to run a container. The problem becomes how to operate dozens of workloads consistently.</p>
+
+    <h2>Signal #1: you have many independently deployed services</h2>
+    <p>There is no magic service count that requires Kubernetes. But complexity usually accelerates once many teams manage many workloads with different release cadences and infrastructure needs.</p>
+    <p>Without a common orchestration platform, each service starts carrying its own configuration burden:</p>
+    <pre>Load balancer configuration
+Autoscaling rules
+IAM permissions
+Logging
+Monitoring
+Deployment configuration
+Secrets
+Health checks
+Environment variables
+Networking
+Service discovery</pre>
+    <p>Kubernetes standardizes these primitives into a common interface. That consistency becomes more valuable as the number of services grows.</p>
+
+    <h2>Signal #2: deployment complexity starts growing</h2>
+    <p>At the beginning, deployment can be straightforward:</p>
+    <pre>Build Docker image
+Push to ECR
+Update ECS task definition
+Deploy ECS service</pre>
+    <p>Then requirements expand: rolling updates, blue/green releases, canaries, automatic rollback, promotion between environments, deployment approvals, health gates, traffic splitting. The problem becomes deployment consistency across many services and teams.</p>
+    <div class="flow"><span>Developer</span><b>→</b><span>CI</span><b>→</b><span>Image build</span><b>→</b><span>GitOps repo</span><b>→</b><span>Argo CD / Kubernetes</span></div>
+    <p>Kubernetes combined with GitOps can simplify this dramatically because Git becomes the deployment interface and the cluster continuously reconciles the desired state.</p>
+
+    <h2>Signal #3: workloads have very different resource profiles</h2>
+    <p>Startups often outgrow a single workload shape. APIs, scheduled jobs, queue consumers, image processors, ML workers, and internal tools do not behave the same way.</p>
+    <pre>API services
+CPU: medium
+Memory: medium
+
+Image processor
+CPU: high
+Memory: high
+
+Background worker
+CPU: low
+Memory: medium
+
+Reporting service
+CPU: bursty
+Memory: high</pre>
+    <p>Running everything as isolated tasks is operationally simple, but it can become expensive. Kubernetes allows shared capacity and better bin packing. Combined with dynamic node provisioning, it starts behaving not just as an orchestrator, but as a resource scheduling system.</p>
+
+    <h2>Signal #4: autoscaling becomes more sophisticated</h2>
+    <p>Simple systems scale on CPU. Mature systems usually need more interesting signals:</p>
+    <pre>SQS queue depth
+Kafka consumer lag
+HTTP request rate
+Custom application metrics
+Number of active jobs
+Memory pressure
+Scheduled traffic patterns</pre>
+    <p>If a worker fleet should scale from zero to dozens of replicas based on queue depth, tools like KEDA and Kubernetes-native autoscaling models become attractive.</p>
+
+    <h2>Signal #5: multiple teams start sharing infrastructure</h2>
+    <p>A five-person engineering team can coordinate informally. A fifty-person organization usually cannot. Once multiple teams deploy multiple services, the lack of a shared platform becomes an organizational problem as much as a technical one.</p>
+    <pre>Application Teams
+       |
+       v
+Kubernetes API
+       |
+       v
+Platform Team
+       |
+       v
+AWS Infrastructure</pre>
+    <p>Kubernetes provides a common deployment API and a useful platform boundary: application teams focus on workloads, while the platform team manages the underlying operating model.</p>
+
+    <h2>Signal #6: infrastructure duplication is becoming expensive</h2>
+    <p>As environments multiply, infrastructure often multiplies with them. Development, staging, QA, performance, preview, integration and sandbox environments can create a lot of duplicated operational surface.</p>
+    <pre>EKS Cluster
+|
+|-- namespace: development
+|-- namespace: staging
+|-- namespace: production
+|-- namespace: preview-pr-847
+|-- namespace: performance-test</pre>
+    <p>This does not mean every environment should share a cluster, but Kubernetes provides more flexibility in how environments are isolated and operated.</p>
+
+    <h2>Bad reasons to move to Kubernetes</h2>
+    <h3>Everyone uses Kubernetes</h3>
+    <p>Popularity is not an architecture requirement. A startup with one API, one frontend, two workers and one PostgreSQL database does not automatically need Kubernetes.</p>
+    <h3>We will need it when we scale</h3>
+    <p>Maybe. But architecture should optimize for current constraints and reasonably foreseeable growth, not hypothetical scale.</p>
+    <h3>Kubernetes will make everything more reliable</h3>
+    <p>It can improve reliability, but it can also introduce new failure modes: CNI issues, DNS problems, ingress failures, pod eviction, certificate drift, admission webhook problems, autoscaler issues, and upgrade risk. A Kubernetes cluster is itself a distributed system.</p>
+
+    <h2>The migration should not be a big bang</h2>
+    <p>The most dangerous migration pattern is to stop everything, rebuild the platform, and move all services at once. A safer migration is incremental.</p>
+    <div class="flow"><span>Containerize workloads</span><b>→</b><span>Standardize CI/CD</span><b>→</b><span>Build platform</span><b>→</b><span>Migrate a low-risk service</span><b>→</b><span>Move by value</span></div>
+    <p>During migration, old and new environments can coexist. The goal is to validate deployment, logging, metrics, secrets, networking, alerting and rollback before critical services move.</p>
+
+    <h2>What I would build first</h2>
+    <p>A common mistake is trying to build an enormous internal platform on day one. In most cases, the first production EKS platform should stay intentionally small.</p>
+    <pre>EKS
+Terraform
+Karpenter
+AWS Load Balancer Controller
+External Secrets
+Argo CD
+Prometheus
+Grafana
+Loki</pre>
+    <p>You probably do not need a service mesh, multiple policy engines, custom controllers and a platform portal on the first week of migration.</p>
+
+    <h2>Cost: Kubernetes is not automatically cheaper</h2>
+    <p>Another common misconception is that Kubernetes will reduce the AWS bill by default. Sometimes it does. Sometimes it increases it. Small environments still pay for the control plane, worker nodes, load balancers, observability and platform engineering time.</p>
+    <p>Kubernetes becomes economically sensible when its platform capabilities and improved shared-capacity utilization create more value than their operational cost.</p>
+
+    <aside class="callout"><strong>Final takeaway</strong><p>Kubernetes should solve complexity you already have, not complexity you hope to have someday.</p></aside>
+
+    <footer class="cta"><p>Need to decide whether your current AWS platform should stay on ECS/Fargate or move toward Kubernetes?</p><a class="btn" href="index.html#contact">Discuss the architecture →</a></footer>
+  </main>
+</body>
+</html>

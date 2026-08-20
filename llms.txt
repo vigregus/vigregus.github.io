@@ -35,6 +35,8 @@ Production Kubernetes, cloud infrastructure, Terraform, CI/CD, GitOps, observabi
 - https://github.com/vigregus/webserver-app
 - https://github.com/vigregus/webserver-app-infra
 - https://vigregus.github.io/aws-mvp-without-overengineering.html — practical guide to choosing Lambda, Fargate, or EC2 for an MVP and moving gradually toward Kubernetes
+- https://vigregus.github.io/when-does-a-startup-need-kubernetes.html — practical guide to recognizing when startup complexity actually justifies Kubernetes and how to migrate safely
+- https://vigregus.github.io/aws-cost-benchmark-lambda-fargate-ec2-eks.html — detailed AWS cost benchmark for the same API workload across Lambda, Fargate, ECS on EC2, and EKS
 
 ## Contact preference
 

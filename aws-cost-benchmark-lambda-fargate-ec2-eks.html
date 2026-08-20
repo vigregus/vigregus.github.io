@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AWS Cost Benchmark: Lambda vs Fargate vs ECS on EC2 vs EKS — Grigorii Pershin</title>
+<meta name="description" content="A detailed AWS cost benchmark comparing Lambda, ECS Fargate, ECS on EC2, and EKS for the same API workload across 10, 100, 500, and 1,000 RPS.">
+<meta name="author" content="Grigorii Pershin">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
+<link rel="canonical" href="https://vigregus.github.io/aws-cost-benchmark-lambda-fargate-ec2-eks.html">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://vigregus.github.io/aws-cost-benchmark-lambda-fargate-ec2-eks.html">
+<meta property="og:title" content="AWS Cost Benchmark: Lambda vs Fargate vs ECS on EC2 vs EKS">
+<meta property="og:description" content="The same API. The same RPS. Four AWS compute models. What actually costs less?">
+<style>
+:root{--bg:#071317;--panel:#0c1c21;--panel2:#10272c;--text:#f2f0e9;--muted:#a8b8b7;--line:rgba(231,242,238,.14);--acid:#b9ed62;--blue:#8fb7ff;--amber:#f2b45f;--max:980px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),var(--bg);background-size:56px 56px;color:var(--text);font:17px/1.8 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:inherit;text-decoration:none} nav{height:76px;padding:0 5vw;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);background:rgba(7,19,23,.92);position:sticky;top:0;z-index:5;backdrop-filter:blur(14px)} .brand{font-weight:800} .back{color:var(--acid);font-size:14px}
+.hero{max-width:1180px;margin:auto;padding:100px 28px 80px} .eyebrow{color:var(--acid);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase} .hero h1{font-size:clamp(46px,7vw,86px);line-height:.98;letter-spacing:-.055em;margin:24px 0} .deck{max-width:900px;color:var(--muted);font-size:22px} .meta{display:flex;gap:16px 28px;flex-wrap:wrap;margin-top:35px;color:#718388;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.content{max-width:var(--max);margin:auto;padding:70px 28px 120px} .lead{font-size:23px;color:var(--text)} h2{font-size:clamp(32px,4vw,50px);line-height:1.08;letter-spacing:-.035em;margin:78px 0 20px} h3{font-size:25px;margin:46px 0 10px} p,li{color:var(--muted)} li{margin:10px 0}
+.callout{margin:42px 0;padding:26px;border-left:3px solid var(--acid);background:var(--panel)} .callout strong{color:var(--acid);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
+.figure{margin:48px 0;padding:24px;border:1px solid var(--line);background:rgba(12,28,33,.86)} .figure h3{margin:0 0 8px;font-size:18px} .figure .caption{font-size:12px;color:#718388;margin:10px 0 0} svg{width:100%;height:auto;display:block}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px} .arch{min-height:190px;padding:22px;border:1px solid var(--line);background:var(--panel)} .arch b{display:block;color:var(--acid);margin-bottom:16px} .node{padding:8px 10px;margin:7px 0;border:1px solid var(--line);font:11px ui-monospace,SFMono-Regular,Menlo,monospace;text-align:center;background:#081115} .arrow{text-align:center;color:var(--acid);line-height:1}
+.assumptions{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);border-left:1px solid var(--line)} .assumptions div{padding:18px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)} .assumptions strong{display:block;color:var(--acid);font-size:11px;text-transform:uppercase;letter-spacing:.07em} .assumptions span{font-size:18px}
+table{width:100%;border-collapse:collapse;margin:30px 0;font-size:14px} th,td{padding:14px 12px;border-bottom:1px solid var(--line);text-align:right} th:first-child,td:first-child{text-align:left} th{color:var(--acid);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+pre{overflow:auto;padding:22px;border:1px solid var(--line);background:#081115;color:#d8e5df;font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace}
+.traffic{display:grid;grid-template-columns:1fr 1fr;gap:18px} .traffic-card{padding:22px;border:1px solid var(--line);background:var(--panel)} .spark{height:120px;position:relative;border-left:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:18px} .steady{position:absolute;left:0;right:0;top:45px;border-top:4px solid var(--acid)} .bursty{position:absolute;left:0;right:0;top:0;height:100%} .bursty svg{height:100%}
+.composition{display:grid;grid-template-columns:repeat(4,1fr);gap:12px} .stackbar{height:190px;display:flex;flex-direction:column;justify-content:flex-end;border:1px solid var(--line);background:#081115} .seg{display:grid;place-items:center;font-size:10px;color:#071317;font-weight:800;min-height:24px} .lab{text-align:center;font-size:12px;color:var(--muted);margin-top:8px}
+.tco{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap} .tco span{flex:1;min-width:120px;padding:18px;border:1px solid var(--line);background:var(--panel);text-align:center;font-size:12px} .tco b{align-self:center;color:var(--acid)} .decision{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line)} .step{padding:24px;border-right:1px solid var(--line);min-height:200px} .step:last-child{border-right:0} .step .num{color:var(--acid);font:11px ui-monospace,monospace} .step h4{margin:14px 0 8px;font-size:18px} .step p{font-size:13px}
+.sources{margin-top:70px;padding:28px;border:1px solid var(--line);background:var(--panel)} .sources a{color:var(--acid);text-decoration:underline} .note{font-size:12px;color:#718388}
+.cta{margin-top:80px;padding:34px;border:1px solid var(--line);background:var(--panel)} .cta p{font-size:21px;color:var(--text)} .btn{display:inline-block;padding:12px 17px;background:var(--acid);color:var(--bg);font-weight:800}
+@media(max-width:800px){.grid4,.composition,.decision{grid-template-columns:1fr 1fr}.assumptions{grid-template-columns:1fr 1fr}.traffic{grid-template-columns:1fr}}
+@media(max-width:520px){.grid4,.composition,.decision,.assumptions{grid-template-columns:1fr}.step{border-right:0;border-bottom:1px solid var(--line)}}
+</style>
+</head>
+<body>
+<nav><a class="brand" href="index.html">GP / DEVOPS</a><a class="back" href="index.html#insights">← Insights</a></nav>
+<header class="hero">
+<div class="eyebrow">AWS · FinOps · Platform engineering</div>
+<h1>AWS Cost Benchmark: Lambda vs Fargate vs ECS on EC2 vs EKS</h1>
+<p class="deck">The same API. The same traffic. The same capacity assumptions. Four AWS compute models — and a detailed look at what actually drives the monthly bill.</p>
+<div class="meta"><span>Grigorii Pershin</span><span>Senior DevOps &amp; Platform Engineer</span><span>Illustrative benchmark</span><span>August 2026</span></div>
+</header>
+
+<main class="content">
+<p class="lead">When engineers compare AWS Lambda, ECS Fargate, EC2 and Kubernetes, the discussion usually becomes architectural. But there is a more concrete question: what happens if we run exactly the same workload on all of them?</p>
+<p>This benchmark uses one API model, identical RPS targets, the same memory and latency assumptions, and a common availability model. The goal is not to produce an AWS quote. It is to show how the economics change as utilization and platform complexity increase.</p>
+
+<div class="figure">
+<h3>1. Four ways to run the same API</h3>
+<div class="grid4">
+<div class="arch"><b>Lambda</b><div class="node">Internet</div><div class="arrow">↓</div><div class="node">API Gateway</div><div class="arrow">↓</div><div class="node">Lambda</div></div>
+<div class="arch"><b>Fargate</b><div class="node">Internet</div><div class="arrow">↓</div><div class="node">ALB</div><div class="arrow">↓</div><div class="node">ECS Fargate</div></div>
+<div class="arch"><b>ECS + EC2</b><div class="node">Internet</div><div class="arrow">↓</div><div class="node">ALB</div><div class="arrow">↓</div><div class="node">ECS / EC2</div></div>
+<div class="arch"><b>EKS + EC2</b><div class="node">Internet</div><div class="arrow">↓</div><div class="node">ALB</div><div class="arrow">↓</div><div class="node">EKS / EC2</div></div>
+</div>
+<p class="caption">Illustrative architecture comparison. Database and common shared services are excluded from the cost comparison.</p>
+</div>
+
+<h2>The workload</h2>
+<p>Assume a lightweight REST API performing authentication, business logic, a database/cache call, and a JSON response. We fix the workload so that the compute model — not the application — is what changes.</p>
+
+<div class="figure">
+<h3>2. Benchmark assumptions</h3>
+<div class="assumptions">
+<div><strong>Region</strong><span>us-east-1</span></div>
+<div><strong>Execution time</strong><span>100 ms avg.</span></div>
+<div><strong>Memory</strong><span>512 MB</span></div>
+<div><strong>Payload</strong><span>10 KB</span></div>
+<div><strong>Container capacity</strong><span>50 RPS</span></div>
+<div><strong>Headroom</strong><span>30%</span></div>
+</div>
+<p class="caption">Illustrative benchmark — not an AWS quote. In a real migration, replace the 50 RPS/container assumption with load-test data.</p>
+</div>
+
+<p>We calculate four steady-load scenarios:</p>
+<table><thead><tr><th>Average load</th><th>Requests/month</th></tr></thead><tbody>
+<tr><td>10 RPS</td><td>26.28M</td></tr>
+<tr><td>100 RPS</td><td>262.8M</td></tr>
+<tr><td>500 RPS</td><td>1.314B</td></tr>
+<tr><td>1,000 RPS</td><td>2.628B</td></tr>
+</tbody></table>
+
+<aside class="callout"><strong>Important</strong><p>RPS is not a universal unit of compute. A cached CRUD endpoint and a CPU-heavy encryption endpoint can have radically different RPS-per-vCPU. Benchmark the actual application first.</p></aside>
+
+<h2>Lambda: pay per request and execution duration</h2>
+<p>Lambda has a request component and a duration component measured in GB-seconds. For a 512 MB function running for 100 ms, each request consumes 0.05 GB-seconds. API Gateway adds another per-request cost for HTTP APIs.</p>
+<pre>0.5 GB × 0.1 sec = 0.05 GB-seconds per request
+
+Lambda total
+=
+request charge
++
+duration charge
++
+API Gateway</pre>
+<p>At low and intermittent traffic, this model is extremely attractive because compute can fall close to zero during idle periods. Under continuous high-volume traffic, however, the convenience premium becomes visible.</p>
+
+<h2>Fargate: pay for task-level vCPU and memory</h2>
+<p>Fargate changes the unit of economics. Instead of paying per invocation, you pay for the vCPU and memory assigned to running tasks. For this model, one task is 0.25 vCPU and 512 MB and can process roughly 50 RPS.</p>
+<pre>required tasks
+=
+ceil(RPS × 1.3 / 50)
+
+minimum tasks for HA
+=
+2</pre>
+<p>This produces 2, 3, 13 and 26 tasks at 10, 100, 500 and 1,000 RPS respectively.</p>
+
+<h2>ECS on EC2: cheaper raw capacity, but only when you use it</h2>
+<p>EC2 introduces capacity ownership. The advantage is that multiple tasks can share an instance and purchasing models such as Savings Plans or Spot can reduce effective compute cost. The disadvantage is that unused instance capacity is still billed.</p>
+<p>At small scale, a two-node HA baseline can make ECS on EC2 more expensive than tightly right-sized Fargate. As the number of workloads grows, bin packing can fill those gaps and improve economics.</p>
+
+<h2>EKS: Kubernetes does not make EC2 cheaper</h2>
+<p>EKS worker nodes are still EC2 instances. If EKS and ECS use the same underlying nodes, the raw compute price is not magically reduced. EKS additionally has a per-cluster fee and introduces platform components and operational work.</p>
+<p>Under standard Kubernetes version support, Amazon EKS currently charges $0.10 per cluster-hour; extended support is $0.60 per cluster-hour. Worker-node EC2, EBS, IPv4, and related resources are billed separately.</p>
+
+<div class="figure">
+<h3>3. Monthly infrastructure cost vs RPS</h3>
+<svg viewBox="0 0 900 430" role="img" aria-label="Monthly infrastructure cost by RPS"><line x1="80" y1="360.0" x2="860" y2="360.0" stroke="rgba(231,242,238,.12)" stroke-width="1"/><text x="66" y="364.0" text-anchor="end" fill="#718388" font-size="12">$0</text><line x1="80" y1="302.7" x2="860" y2="302.7" stroke="rgba(231,242,238,.12)" stroke-width="1"/><text x="66" y="306.7" text-anchor="end" fill="#718388" font-size="12">$1,000</text><line x1="80" y1="245.5" x2="860" y2="245.5" stroke="rgba(231,242,238,.12)" stroke-width="1"/><text x="66" y="249.5" text-anchor="end" fill="#718388" font-size="12">$2,000</text><line x1="80" y1="188.2" x2="860" y2="188.2" stroke="rgba(231,242,238,.12)" stroke-width="1"/><text x="66" y="192.2" text-anchor="end" fill="#718388" font-size="12">$3,000</text><line x1="80" y1="130.9" x2="860" y2="130.9" stroke="rgba(231,242,238,.12)" stroke-width="1"/><text x="66" y="134.9" text-anchor="end" fill="#718388" font-size="12">$4,000</text><line x1="80" y1="73.6" x2="860" y2="73.6" stroke="rgba(231,242,238,.12)" stroke-width="1"/><text x="66" y="77.6" text-anchor="end" fill="#718388" font-size="12">$5,000</text><text x="80.0" y="395" text-anchor="middle" fill="#a8b8b7" font-size="12">10 RPS</text><text x="340.0" y="395" text-anchor="middle" fill="#a8b8b7" font-size="12">100 RPS</text><text x="600.0" y="395" text-anchor="middle" fill="#a8b8b7" font-size="12">500 RPS</text><text x="860.0" y="395" text-anchor="middle" fill="#a8b8b7" font-size="12">1000 RPS</text><polyline points="80.0,357.0 340.0,329.4 600.0,212.8 860.0,67.3" fill="none" stroke="#f2f0e9" stroke-width="4"/><circle cx="80.0" cy="357.0" r="5" fill="#f2f0e9"/><circle cx="340.0" cy="329.4" r="5" fill="#f2f0e9"/><circle cx="600.0" cy="212.8" r="5" fill="#f2f0e9"/><circle cx="860.0" cy="67.3" r="5" fill="#f2f0e9"/><polyline points="80.0,357.9 340.0,356.3 600.0,346.3 860.0,333.6" fill="none" stroke="#b9ed62" stroke-width="4"/><circle cx="80.0" cy="357.9" r="5" fill="#b9ed62"/><circle cx="340.0" cy="356.3" r="5" fill="#b9ed62"/><circle cx="600.0" cy="346.3" r="5" fill="#b9ed62"/><circle cx="860.0" cy="333.6" r="5" fill="#b9ed62"/><polyline points="80.0,352.6 340.0,351.5 600.0,343.5 860.0,331.2" fill="none" stroke="#8fb7ff" stroke-width="4"/><circle cx="80.0" cy="352.6" r="5" fill="#8fb7ff"/><circle cx="340.0" cy="351.5" r="5" fill="#8fb7ff"/><circle cx="600.0" cy="343.5" r="5" fill="#8fb7ff"/><circle cx="860.0" cy="331.2" r="5" fill="#8fb7ff"/><polyline points="80.0,348.4 340.0,347.3 600.0,339.3 860.0,327.0" fill="none" stroke="#f2b45f" stroke-width="4"/><circle cx="80.0" cy="348.4" r="5" fill="#f2b45f"/><circle cx="340.0" cy="347.3" r="5" fill="#f2b45f"/><circle cx="600.0" cy="339.3" r="5" fill="#f2b45f"/><circle cx="860.0" cy="327.0" r="5" fill="#f2b45f"/><line x1="95" y1="18" x2="119" y2="18" stroke="#f2f0e9" stroke-width="4"/><text x="127" y="22" fill="#d8e5df" font-size="12">Lambda + HTTP API</text><line x1="405" y1="18" x2="429" y2="18" stroke="#b9ed62" stroke-width="4"/><text x="437" y="22" fill="#d8e5df" font-size="12">ECS Fargate</text><line x1="95" y1="40" x2="119" y2="40" stroke="#8fb7ff" stroke-width="4"/><text x="127" y="44" fill="#d8e5df" font-size="12">ECS + EC2</text><line x1="405" y1="40" x2="429" y2="40" stroke="#f2b45f" stroke-width="4"/><text x="437" y="44" fill="#d8e5df" font-size="12">EKS + EC2</text></svg>
+<p class="caption">Illustrative benchmark — not an AWS quote. Monthly model excludes the database and common shared services.</p>
+</div>
+
+<table>
+<thead><tr><th>Average RPS</th><th>Lambda + HTTP API</th><th>ECS Fargate</th><th>ECS + EC2</th><th>EKS + EC2</th></tr></thead>
+<tbody>
+<tr><td>10</td><td>$53</td><td>$37</td><td>$129</td><td>$202</td></tr>
+<tr><td>100</td><td>$534</td><td>$64</td><td>$148</td><td>$221</td></tr>
+<tr><td>500</td><td>$2,570</td><td>$239</td><td>$288</td><td>$361</td></tr>
+<tr><td>1,000</td><td>$5,111</td><td>$461</td><td>$503</td><td>$576</td></tr>
+</tbody>
+</table>
+
+<h2>Cost per million requests</h2>
+<p>Looking only at the monthly bill can hide the utilization effect. Cost per million requests makes it easier to see when fixed infrastructure is being amortized across more traffic.</p>
+
+<div class="figure">
+<h3>4. Cost per 1M requests</h3>
+<svg viewBox="0 0 900 430" role="img" aria-label="Cost per million requests"><line x1="80" y1="340.0" x2="860" y2="340.0" stroke="rgba(231,242,238,.12)" /><text x="68" y="344.0" text-anchor="end" fill="#718388" font-size="12">$0</text><line x1="80" y1="268.0" x2="860" y2="268.0" stroke="rgba(231,242,238,.12)" /><text x="68" y="272.0" text-anchor="end" fill="#718388" font-size="12">$2</text><line x1="80" y1="196.1" x2="860" y2="196.1" stroke="rgba(231,242,238,.12)" /><text x="68" y="200.1" text-anchor="end" fill="#718388" font-size="12">$4</text><line x1="80" y1="124.1" x2="860" y2="124.1" stroke="rgba(231,242,238,.12)" /><text x="68" y="128.1" text-anchor="end" fill="#718388" font-size="12">$6</text><line x1="80" y1="52.2" x2="860" y2="52.2" stroke="rgba(231,242,238,.12)" /><text x="68" y="56.2" text-anchor="end" fill="#718388" font-size="12">$8</text><rect x="97.5" y="267.4" width="28.1" height="72.6" rx="3" fill="#f2f0e9"/><rect x="136.6" y="289.3" width="28.1" height="50.7" rx="3" fill="#b9ed62"/><rect x="175.6" y="163.4" width="28.1" height="176.6" rx="3" fill="#8fb7ff"/><rect x="214.6" y="63.5" width="28.1" height="276.5" rx="3" fill="#f2b45f"/><text x="177.5" y="382" text-anchor="middle" fill="#a8b8b7" font-size="12">10 RPS</text><rect x="292.6" y="266.9" width="28.1" height="73.1" rx="3" fill="#f2f0e9"/><rect x="331.6" y="331.2" width="28.1" height="8.8" rx="3" fill="#b9ed62"/><rect x="370.6" y="319.7" width="28.1" height="20.3" rx="3" fill="#8fb7ff"/><rect x="409.6" y="309.7" width="28.1" height="30.3" rx="3" fill="#f2b45f"/><text x="372.5" y="382" text-anchor="middle" fill="#a8b8b7" font-size="12">100 RPS</text><rect x="487.6" y="269.6" width="28.1" height="70.4" rx="3" fill="#f2f0e9"/><rect x="526.5" y="333.5" width="28.1" height="6.5" rx="3" fill="#b9ed62"/><rect x="565.5" y="332.1" width="28.1" height="7.9" rx="3" fill="#8fb7ff"/><rect x="604.5" y="330.1" width="28.1" height="9.9" rx="3" fill="#f2b45f"/><text x="567.5" y="382" text-anchor="middle" fill="#a8b8b7" font-size="12">500 RPS</text><rect x="682.5" y="270.0" width="28.1" height="70.0" rx="3" fill="#f2f0e9"/><rect x="721.5" y="333.7" width="28.1" height="6.3" rx="3" fill="#b9ed62"/><rect x="760.5" y="333.1" width="28.1" height="6.9" rx="3" fill="#8fb7ff"/><rect x="799.5" y="332.1" width="28.1" height="7.9" rx="3" fill="#f2b45f"/><text x="762.5" y="382" text-anchor="middle" fill="#a8b8b7" font-size="12">1000 RPS</text><rect x="90" y="10" width="18" height="8" fill="#f2f0e9"/><text x="116" y="18" fill="#d8e5df" font-size="12">Lambda + HTTP API</text><rect x="400" y="10" width="18" height="8" fill="#b9ed62"/><text x="426" y="18" fill="#d8e5df" font-size="12">ECS Fargate</text><rect x="90" y="32" width="18" height="8" fill="#8fb7ff"/><text x="116" y="40" fill="#d8e5df" font-size="12">ECS + EC2</text><rect x="400" y="32" width="18" height="8" fill="#f2b45f"/><text x="426" y="40" fill="#d8e5df" font-size="12">EKS + EC2</text></svg>
+<p class="caption">Illustrative benchmark — not an AWS quote. Values are derived from the monthly model above.</p>
+</div>
+
+<p>At 10 RPS, fixed EC2 and EKS capacity is poorly utilized. At 1,000 RPS, those fixed costs are spread across 2.628 billion requests and the gap narrows dramatically.</p>
+
+<h2>Traffic shape matters more than average RPS</h2>
+<p>Two systems can both average 100 RPS and have completely different economics. One may run flat at 100 RPS all day. Another may spend most of the day at 10–20 RPS and spike to 1,000 RPS for short periods.</p>
+
+<div class="figure">
+<h3>5. Steady vs bursty traffic</h3>
+<div class="traffic">
+<div class="traffic-card"><b>Steady workload</b><div class="spark"><div class="steady"></div></div><p>100 RPS, 24/7. Provisioned capacity remains well utilized.</p></div>
+<div class="traffic-card"><b>Bursty workload</b><div class="spark"><div class="bursty"><svg viewBox="0 0 400 120"><polyline points="0,100 60,96 100,92 140,95 180,82 215,88 245,70 270,14 294,20 316,72 350,90 400,96" fill="none" stroke="#b9ed62" stroke-width="4"/></svg></div></div><p>Low baseline with sharp peaks. Scale-to-zero and rapid elasticity become more valuable.</p></div>
+</div>
+<p class="caption">Illustrative workload profiles. Average RPS alone is not enough for an architecture decision.</p>
+</div>
+
+<h2>Where does the bill come from?</h2>
+<p>The platform bill is not only compute. Lambda architectures add API Gateway request pricing; container architectures add load balancers; EC2 adds block storage and idle capacity; EKS adds cluster-level overhead.</p>
+
+<div class="figure">
+<h3>6. Simplified cost composition at 100 RPS</h3>
+<div class="composition">
+<div><div class="stackbar"><div class="seg" style="height:49%;background:#f2f0e9">API Gateway</div><div class="seg" style="height:41%;background:#b9ed62">Lambda duration</div><div class="seg" style="height:10%;background:#8fb7ff">Requests</div></div><div class="lab">Lambda + HTTP API</div></div>
+<div><div class="stackbar"><div class="seg" style="height:58%;background:#f2b45f">ALB</div><div class="seg" style="height:42%;background:#b9ed62">Tasks</div></div><div class="lab">Fargate</div></div>
+<div><div class="stackbar"><div class="seg" style="height:72%;background:#8fb7ff">EC2</div><div class="seg" style="height:25%;background:#f2b45f">ALB</div><div class="seg" style="height:3%;background:#b9ed62">EBS</div></div><div class="lab">ECS + EC2</div></div>
+<div><div class="stackbar"><div class="seg" style="height:48%;background:#8fb7ff">EC2</div><div class="seg" style="height:33%;background:#b9ed62">EKS cluster</div><div class="seg" style="height:17%;background:#f2b45f">ALB</div><div class="seg" style="height:2%;background:#f2f0e9">EBS</div></div><div class="lab">EKS + EC2</div></div>
+</div>
+<p class="caption">Illustrative composition only; proportions are rounded to explain cost drivers, not to reproduce a Cost Explorer bill.</p>
+</div>
+
+<h2>The first surprising result: Lambda is not always the cheapest starting point</h2>
+<p>At extremely low or intermittent traffic, Lambda is hard to beat. But this benchmark is steady 24/7 traffic. At 100 RPS, the model produces roughly $534/month for Lambda + HTTP API versus about $64/month for Fargate.</p>
+<p>The lesson is not “Lambda is expensive.” The lesson is that serverless economics depend heavily on idle time, duration, memory size, traffic shape and the per-request services around the function.</p>
+
+<h2>The second result: Fargate can remain competitive for longer than expected</h2>
+<p>It is common to assume that serious traffic automatically means migrating to EC2. In this workload model, Fargate remains slightly below the two-node/three-node/five-node EC2 model even at 1,000 RPS because tasks are tightly right-sized while EC2 capacity is bought in larger chunks.</p>
+<p>This changes when many independent workloads share the same EC2 fleet. Then the scheduler can fill unused capacity much more effectively.</p>
+
+<h2>The third result: EKS is not a cost optimization by itself</h2>
+<p>For a single API, EKS is consistently more expensive than ECS on the same EC2 capacity in this model. That should not be surprising. Kubernetes is not primarily a discount mechanism.</p>
+<p>Its value appears when platform-level capabilities matter: many teams, many services, heterogeneous compute, GitOps, policy, advanced scheduling, multi-tenant platform boundaries and operational standardization.</p>
+
+<h2>Infrastructure cost is not Total Cost of Ownership</h2>
+<p>A platform decision based only on the AWS invoice can be misleading. The better equation includes people and operational complexity.</p>
+
+<div class="figure">
+<h3>7. Total Cost of Ownership</h3>
+<div class="tco">
+<span>AWS infrastructure</span><b>+</b>
+<span>Platform engineering</span><b>+</b>
+<span>Maintenance</span><b>+</b>
+<span>Incident cost</span><b>+</b>
+<span>Unused capacity</span><b>+</b>
+<span>Migration cost</span>
+</div>
+<p class="caption">The cheapest runtime is not necessarily the cheapest operating model.</p>
+</div>
+
+<p>If moving from Fargate to EKS saves $180/month but creates substantial cluster lifecycle and platform engineering work, the migration makes little economic sense. If an established platform saves several thousand dollars per month and Kubernetes is already justified for organizational reasons, the equation changes.</p>
+
+<h2>What changes with Savings Plans, Spot and Graviton?</h2>
+<p>This benchmark intentionally starts from a mostly On-Demand baseline. Mature environments should evaluate Compute Savings Plans, EC2 Savings Plans, Fargate Savings Plans, Spot and ARM/Graviton where compatible.</p>
+<pre>Critical APIs       -> On-Demand / Savings Plans
+Background workers  -> Spot
+CI workloads        -> Spot
+Batch processing    -> Spot
+Stable baseline     -> committed capacity</pre>
+<p>Those levers can materially shift ECS/EC2 and EKS economics, especially when compute is stable and well utilized.</p>
+
+<h2>The benchmark I would run before a real migration</h2>
+<p>Before using AWS Pricing Calculator, I would load-test the actual application with k6, Gatling or Locust and measure CPU, memory, p50/p95/p99 latency and error rate at increasing RPS.</p>
+<pre>k6 / Gatling / Locust
+        |
+        v
+10 -> 50 -> 100 -> 250 -> 500 RPS
+        |
+        v
+CPU | Memory | p95 | p99 | Errors</pre>
+<p>The useful output is not simply “500 RPS works.” It is a measured capacity unit such as:</p>
+<pre>0.25 vCPU
+50 RPS
+CPU: 58%
+p95: 84 ms
+errors: 0.01%</pre>
+<p>Only then should the pricing model be populated.</p>
+
+<h2>A practical decision map</h2>
+
+<div class="figure">
+<h3>8. What are you actually paying for?</h3>
+<div class="decision">
+<div class="step"><span class="num">01</span><h4>Lambda</h4><p>Pay for elasticity. Strong fit for low, intermittent and unpredictable traffic.</p></div>
+<div class="step"><span class="num">02</span><h4>Fargate</h4><p>Pay for container simplicity. Strong fit for right-sized services without capacity management.</p></div>
+<div class="step"><span class="num">03</span><h4>ECS + EC2</h4><p>Pay less for raw shared capacity when utilization is high enough to justify operating it.</p></div>
+<div class="step"><span class="num">04</span><h4>EKS</h4><p>Pay for a platform abstraction: scheduling, policy, GitOps, consistency and multi-team scale.</p></div>
+</div>
+<p class="caption">There is no universal RPS threshold at which Kubernetes becomes mandatory.</p>
+</div>
+
+<h2>Final takeaway</h2>
+<p>The benchmark suggests a useful progression: Lambda is strongest when elasticity and idle-time economics dominate; Fargate is compelling for continuously running, right-sized containers; ECS on EC2 becomes powerful as shared capacity utilization increases; and EKS becomes justified when platform and organizational complexity require Kubernetes capabilities.</p>
+
+<aside class="callout"><strong>Final principle</strong><p>First benchmark the application. Then calculate the infrastructure. Then calculate the operational cost. Only then choose the platform.</p></aside>
+
+<div class="sources">
+<h3>Methodology &amp; pricing sources</h3>
+<p class="note">Pricing is region-, architecture-, support-tier-, and date-sensitive. The charts in this article are an illustrative engineering model, not an AWS quote or a reproduced Cost Explorer statement.</p>
+<ul>
+<li><a href="https://aws.amazon.com/lambda/pricing/">AWS Lambda Pricing</a> — request and duration pricing model.</li>
+<li><a href="https://aws.amazon.com/api-gateway/pricing/">Amazon API Gateway Pricing</a> — HTTP API request pricing.</li>
+<li><a href="https://aws.amazon.com/fargate/pricing/">AWS Fargate Pricing</a> — task-level vCPU, memory and storage billing.</li>
+<li><a href="https://aws.amazon.com/elasticloadbalancing/pricing/">Elastic Load Balancing Pricing</a> — ALB hourly and LCU pricing model.</li>
+<li><a href="https://aws.amazon.com/eks/pricing/">Amazon EKS Pricing</a> — per-cluster pricing and Kubernetes support tiers.</li>
+</ul>
+</div>
+
+<footer class="cta">
+<p>Need to benchmark an AWS workload before moving from Lambda or Fargate to EC2 or EKS?</p>
+<a class="btn" href="index.html#contact">Discuss the architecture →</a>
+</footer>
+</main>
+</body>
+</html>
